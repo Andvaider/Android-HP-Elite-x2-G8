@@ -1,4 +1,4 @@
-name: Build Android-x86 HP Elite x2 G8 (Vanilla + GApps)
+name: Build Android-x86 r-x86 HP Elite x2 G8
 
 on:
   workflow_dispatch:
@@ -26,22 +26,21 @@ jobs:
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
 
-      - name: Sync and Build Vanilla with GApps
+      - name: Sync and Build Android-x86
         run: |
           export PATH=~/bin:$PATH
-          mkdir android-hp && cd android-hp
+          mkdir android-x86 && cd android-x86
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
-          # Инициализация ветки vanilla-v13.x для ПК
-          repo init -u https://github.com/BlissOS/platform_manifest.git -b vanilla-v13.x --depth=1
+          # Используем официальный стабильный репозиторий android-x86 (ветка r-x86 для Android 11)
+          repo init -u https://github.com/android-x86/manifest.git -b r-x86 --depth=1
           repo sync -c -j$(nproc) --no-tags --no-clone-bundle
 
           source build/envsetup.sh
           lunch x86_64-userdebug
 
-          # Включаем GApps и параметры для HP Elite x2 G8 (графика, датчики, звук, батарея)
-          export WITH_GAPPS=true
+          # Параметры ядра для HP Elite x2 G8
           export BOARD_KERNEL_CMDLINE="GPU=INTEL vulkan=intel iris=true i915.force_probe=4c8a i915.enable_guc=3 snd_intel_dspcfg.dsp_driver=3 swiotlb=max"
 
           m iso_img -j$(nproc)
@@ -49,5 +48,5 @@ jobs:
       - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
-          name: Android-Vanilla-GApps-HP-Elite-x2-G8-ISO
-          path: android-hp/out/target/product/x86_64/*.iso
+          name: Android-11-x86-HP-Elite-x2-G8-ISO
+          path: android-x86/out/target/product/x86_64/*.iso
